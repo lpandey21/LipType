@@ -42,7 +42,28 @@ def FG(input_im):
     return a_conv5
 
 
+def gaussian_window(self, bottom, top, sigma):
+        # check input dimensions match
+        if bottom[0].count != bottom[1].count:
+            raise Exception("Inputs must have the same dimension.")
+        # loss output is scalar
+        top[0].reshape(1)
 
+        # initialize the size to 5D
+        num_scale = len(self.sigma)
+        self.width = bottom[0].width
+        self.channels = bottom[0].channels
+        self.batch = bottom[0].num
+        for i in range(len(self.sigma)):
+            gaussian = np.exp(-1.*np.arange(-(self.width/2), self.width/2+1)**2/(2*self.sigma[i]**2))
+            gaussian = np.outer(gaussian, gaussian.reshape((self.width, 1)))    # extend to 2D
+            gaussian = gaussian/np.sum(gaussian)                                # normailization
+            gaussian = np.reshape(gaussian, (1, 1, self.width, self.width))     # reshape to 4D
+            gaussian = np.tile(gaussian, (self.batch, self.channels, 1, 1))
+            self.w[i,:,:,:,:] = gaussian
+            g_window = self.w[i,:,:,:,:]
+    return g_window
+  
 class lowlight_enhance(object):
     def __init__(self, sess):
         self.sess = sess
